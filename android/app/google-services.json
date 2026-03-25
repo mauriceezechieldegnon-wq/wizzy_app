@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "443299913856",
+    "project_id": "wizzy-3a250",
+    "storage_bucket": "wizzy-3a250.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443299913856:android:6ba6608a5a681def678665",
+        "android_client_info": {
+          "package_name": "com.dem.wizzy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443299913856-k99tpvp2cslvnec1qos1n754m2nl3sk2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj4fZpLprpvlkf5ZGVHtXWbxp8ZgKRcL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443299913856-k99tpvp2cslvnec1qos1n754m2nl3sk2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "443299913856-iv18klr6i6agldp04fb6f3a548ufnrfj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dem.wizzy"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443299913856:android:f6ae0a5f2dd93609678665",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443299913856-k99tpvp2cslvnec1qos1n754m2nl3sk2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj4fZpLprpvlkf5ZGVHtXWbxp8ZgKRcL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443299913856-k99tpvp2cslvnec1qos1n754m2nl3sk2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "443299913856-iv18klr6i6agldp04fb6f3a548ufnrfj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dem.wizzy"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
