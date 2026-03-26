@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/services/payment_service.dart';
 
 class LuckyDrawScreen extends StatelessWidget {
   const LuckyDrawScreen({super.key});
@@ -13,9 +12,7 @@ class LuckyDrawScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF09090B),
-      appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          title: const Text("TIRAGE AU SORT")),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: StreamBuilder<DocumentSnapshot>(
         stream:
             FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
@@ -23,62 +20,57 @@ class LuckyDrawScreen extends StatelessWidget {
           if (!snapshot.hasData)
             return const Center(child: CircularProgressIndicator());
 
-          final data = snapshot.data!.data() as Map<String, dynamic>;
-          int points = data['points'] ?? 0;
-          bool hasPaid = data['hasPaidEntry'] ?? false;
-
-          // Règle : Il faut au moins 1000 points pour être dans la course (exemple)
+          var userData = snapshot.data!.data() as Map<String, dynamic>;
+          int points = userData['points'] ?? 0;
+          bool hasPaid = userData['hasPaidEntry'] ?? false;
           bool isQualified = points >= 1000;
 
           return Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(30.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.confirmation_number,
-                    size: 80,
-                    color:
-                        hasPaid ? Colors.greenAccent : AppColors.accentYellow),
-                const SizedBox(height: 20),
+                const Text("TIRAGE MENSUEL",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2)),
+                const SizedBox(height: 40),
+
+                // Statut
+                _statusIcon(hasPaid, isQualified),
+
+                const SizedBox(height: 30),
                 Text(
                   hasPaid
-                      ? "TICKET VALIDÉ"
+                      ? "INSCRIPTION VALIDÉE !"
                       : (isQualified
-                          ? "TU ES QUALIFIÉ !"
+                          ? "TU ES ÉLIGIBLE !"
                           : "PAS ENCORE QUALIFIÉ"),
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900),
+                  style: TextStyle(
+                      color:
+                          hasPaid ? Colors.greenAccent : AppColors.accentYellow,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
                 ),
+
                 const SizedBox(height: 10),
                 Text(
                   hasPaid
-                      ? "Rendez-vous le 30 mars pour le résultat."
-                      : (isQualified
-                          ? "Paie 100F pour participer au tirage mensuel."
-                          : "Gagne encore ${1000 - points} points pour te qualifier."),
+                      ? "Bonne chance pour le tirage final."
+                      : "Gagne 1000 points pour débloquer ton ticket.",
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white38),
                 ),
-                const SizedBox(height: 40),
-                if (isQualified && !hasPaid)
-                  GestureDetector(
-                    onTap: () =>
-                        PaymentService().startTransaction(context, 100),
-                    child: Container(
-                      width: double.infinity,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [Colors.orange, Colors.redAccent]),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                          child: Text("PAYER 100F (MOBILE MONEY)",
-                              style: TextStyle(fontWeight: FontWeight.bold))),
-                    ),
-                  ),
+
+                const Spacer(),
+
+                // Historique des gagnants
+                _buildWinnerHistory(),
+
+                const SizedBox(height: 30),
+
+                if (isQualified && !hasPaid) _payButton(context),
               ],
             ),
           );
@@ -86,20 +78,72 @@ class LuckyDrawScreen extends StatelessWidget {
       ),
     );
   }
-}
-StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance.collection('draw_history').orderBy('timestamp', descending: true).limit(1).snapshots(),
-  builder: (context, snap) {
-    if (!snap.hasData || snap.data!.docs.isEmpty) return const SizedBox();
-    var lastWinner = snap.data!.docs.first;
+
+  Widget _statusIcon(bool paid, bool qualified) {
+    IconData icon = Icons.lock_outline;
+    Color col = Colors.white10;
+    if (paid) {
+      icon = Icons.verified_user;
+      col = Colors.greenAccent;
+    } else if (qualified) {
+      icon = Icons.confirmation_number;
+      col = AppColors.accentYellow;
+    }
+
     return Container(
-      margin: const EdgeInsets.only(top: 40),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(15)),
-      child: Text(
-        "Dernier gagnant : ${lastWinner['winnerName']} 🏆",
-        style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
-      ),
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+          shape: BoxShape.circle, color: col.withValues(alpha: 0.1)),
+      child: Icon(icon, size: 80, color: col),
     );
-  },
-),
+  }
+
+  Widget _buildWinnerHistory() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('draw_history')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snap) {
+        if (!snap.hasData || snap.data!.docs.isEmpty) return const SizedBox();
+        var winner = snap.data!.docs.first;
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white10)),
+          child: Row(
+            children: [
+              const Icon(Icons.star, color: Colors.amber, size: 20),
+              const SizedBox(width: 15),
+              Text("DERNIER GAGNANT : ${winner['winnerName']}",
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _payButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        // Redirection vers ton service de paiement FedaPay
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Ouverture de FedaPay...")));
+      },
+      style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryPurple,
+          minimumSize: const Size(double.infinity, 60),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+      child: const Text("PARTICIPER POUR 100F",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    );
+  }
+}

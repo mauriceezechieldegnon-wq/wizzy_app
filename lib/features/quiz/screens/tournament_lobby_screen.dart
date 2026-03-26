@@ -23,7 +23,10 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
 
   // Ajoute l'utilisateur à la liste des joueurs et initialise son score à 0
   void _joinLobby() async {
-    await FirebaseFirestore.instance.collection('tournaments').doc(tourneyId).set({
+    await FirebaseFirestore.instance
+        .collection('tournaments')
+        .doc(tourneyId)
+        .set({
       'players': FieldValue.arrayUnion([currentUid]),
       'status': 'waiting',
       'scores.$currentUid': 0, // Initialisation du score du joueur
@@ -38,16 +41,23 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("LOBBY BATTLE ROYALE", 
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5)),
+        title: const Text("LOBBY BATTLE ROYALE",
+            style: TextStyle(
+                fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5)),
         leading: const BackButton(color: Colors.white),
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('tournaments').doc(tourneyId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(tourneyId)
+            .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text("Erreur de connexion"));
+          if (snapshot.hasError)
+            return const Center(child: Text("Erreur de connexion"));
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple));
+            return const Center(
+                child:
+                    CircularProgressIndicator(color: AppColors.primaryPurple));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -61,7 +71,9 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => TournamentGameScreen(tournamentId: tourneyId)),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        TournamentGameScreen(tournamentId: tourneyId)),
               );
             });
           }
@@ -71,22 +83,28 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
             child: Column(
               children: [
                 const Spacer(),
-                
+
                 // Radar Central avec décompte
                 _buildRadar(count),
-                
+
                 const SizedBox(height: 50),
-                
+
                 Text(
                   "$count / 5 JOUEURS",
-                  style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.black),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 10),
                 const Text(
                   "En attente de combattants...",
-                  style: TextStyle(color: Colors.white38, fontSize: 14, fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic),
                 ),
-                
+
                 const SizedBox(height: 50),
 
                 // Grille visuelle des 5 places
@@ -94,7 +112,8 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
                   height: 120,
                   child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 5,
                       mainAxisSpacing: 10,
                       crossAxisSpacing: 10,
@@ -103,10 +122,14 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
                     itemBuilder: (context, index) {
                       bool isFilled = index < count;
                       return CircleAvatar(
-                        backgroundColor: isFilled ? AppColors.primaryPurple : Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: isFilled
+                            ? AppColors.primaryPurple
+                            : Colors.white.withValues(alpha: 0.05),
                         child: Icon(
-                          isFilled ? Icons.bolt : Icons.person_outline, 
-                          color: isFilled ? AppColors.accentYellow : Colors.white10,
+                          isFilled ? Icons.bolt : Icons.person_outline,
+                          color: isFilled
+                              ? AppColors.accentYellow
+                              : Colors.white10,
                           size: 18,
                         ),
                       );
@@ -124,7 +147,7 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
                     backgroundColor: Colors.white10,
                     color: AppColors.primaryPurple,
                   ),
-                  
+
                 const SizedBox(height: 30),
               ],
             ),
@@ -140,23 +163,32 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
       children: [
         // Cercles animés (statiques ici, mais l'effet est là)
         Container(
-          width: 180, height: 180,
+          width: 180,
+          height: 180,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.2), width: 1),
+            border: Border.all(
+                color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                width: 1),
           ),
         ),
         Container(
-          width: 140, height: 140,
+          width: 140,
+          height: 140,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.4), width: 2),
+            border: Border.all(
+                color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                width: 2),
           ),
         ),
         // Le Chiffre
         Text(
           "$count",
-          style: const TextStyle(color: AppColors.accentYellow, fontSize: 72, fontWeight: FontWeight.w900),
+          style: const TextStyle(
+              color: AppColors.accentYellow,
+              fontSize: 72,
+              fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -166,7 +198,10 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
     return GestureDetector(
       onTap: () async {
         // L'admin ou le 5ème joueur peut déclencher le départ pour tout le monde
-        await FirebaseFirestore.instance.collection('tournaments').doc(tourneyId).update({
+        await FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(tourneyId)
+            .update({
           'status': 'starting',
           'startTime': FieldValue.serverTimestamp(),
         });
@@ -175,14 +210,19 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
         width: double.infinity,
         height: 65,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Colors.greenAccent, Colors.green]),
+          gradient:
+              const LinearGradient(colors: [Colors.greenAccent, Colors.green]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.3), blurRadius: 20)],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.green.withValues(alpha: 0.3), blurRadius: 20)
+          ],
         ),
         child: const Center(
           child: Text(
             "COMMENCER LE TOURNOI",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16),
+            style: TextStyle(
+                color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16),
           ),
         ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../../core/constants/app_colors.dart';
+import '../../core/constants/app_colors.dart';
 import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -38,7 +38,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur : ${e.toString()}"), backgroundColor: Colors.redAccent),
+          SnackBar(
+              content: Text("Erreur : ${e.toString()}"),
+              backgroundColor: Colors.redAccent),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -54,7 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur Google : $e"), backgroundColor: Colors.redAccent),
+        SnackBar(
+            content: Text("Erreur Google : $e"),
+            backgroundColor: Colors.redAccent),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -75,16 +79,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 60),
               // LOGO
               Container(
-                width: 100, height: 100,
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.primaryPurple, width: 2),
                 ),
-                child: ClipOval(child: Image.asset('assets/images/logo.png', fit: BoxFit.cover)),
+                child: ClipOval(
+                    child: Image.asset('assets/images/logo.png',
+                        fit: BoxFit.cover)),
               ),
               const SizedBox(height: 20),
-              const Text("REJOINDRE WIZZY", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 2)),
-              const Text("Gagne des points, remporte le tirage !", style: TextStyle(color: Colors.white38, fontSize: 12)),
+              const Text("REJOINDRE WIZZY",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2)),
+              const Text("Gagne des points, remporte le tirage !",
+                  style: TextStyle(color: Colors.white38, fontSize: 12)),
               const SizedBox(height: 40),
 
               // BOUTON GOOGLE
@@ -96,7 +109,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 25),
-                child: Text("OU PAR EMAIL", style: TextStyle(color: Colors.white12, fontSize: 10, fontWeight: FontWeight.bold)),
+                child: Text("OU PAR EMAIL",
+                    style: TextStyle(
+                        color: Colors.white12,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold)),
               ),
 
               // CHAMPS FORMULAIRE
@@ -110,7 +127,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _whatsappController,
                 hint: "WhatsApp (ex: +22960000000)",
                 icon: FontAwesomeIcons.whatsapp,
-                validator: (v) => !v!.contains("+") ? "Format international requis (+229...)" : null,
+                validator: (v) => !v!.contains("+")
+                    ? "Format international requis (+229...)"
+                    : null,
               ),
               _buildTextField(
                 controller: _emailController,
@@ -132,16 +151,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
               GestureDetector(
                 onTap: _isLoading ? null : _handleEmailRegister,
                 child: Container(
-                  width: double.infinity, height: 60,
+                  width: double.infinity,
+                  height: 60,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [AppColors.primaryPurple, Color(0xFF9D50BB)]),
+                    gradient: const LinearGradient(
+                        colors: [AppColors.primaryPurple, Color(0xFF9D50BB)]),
                     borderRadius: BorderRadius.circular(18),
-                    boxShadow: [BoxShadow(color: AppColors.primaryPurple.withValues(alpha: 0.3), blurRadius: 15)],
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppColors.primaryPurple.withValues(alpha: 0.3),
+                          blurRadius: 15)
+                    ],
                   ),
                   child: Center(
-                    child: _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("CRÉER MON COMPTE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("CRÉER MON COMPTE",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),
@@ -152,7 +180,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required String hint, required IconData icon, bool isPassword = false, String? Function(String?)? validator}) {
+  Widget _buildTextField(
+      {required TextEditingController controller,
+      required String hint,
+      required IconData icon,
+      bool isPassword = false,
+      String? Function(String?)? validator}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
@@ -162,26 +195,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: AppColors.accentYellow, size: 18),
-          suffixIcon: isPassword ? IconButton(
-            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.white24),
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-          ) : null,
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.white24),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                )
+              : null,
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.white24, fontSize: 14),
           filled: true,
           fillColor: Colors.white.withValues(alpha: 0.03),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: AppColors.primaryPurple, width: 1)),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide:
+                  const BorderSide(color: AppColors.primaryPurple, width: 1)),
         ),
       ),
     );
   }
 
-  Widget _buildSocialButton({required String label, required IconData icon, required VoidCallback onTap}) {
+  Widget _buildSocialButton(
+      {required String label,
+      required IconData icon,
+      required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: double.infinity, height: 55,
+        width: double.infinity,
+        height: 55,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.white10),
@@ -191,7 +240,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             FaIcon(icon, color: Colors.white, size: 18),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
       ),

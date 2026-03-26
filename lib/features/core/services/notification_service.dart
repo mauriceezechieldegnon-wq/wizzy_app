@@ -2,14 +2,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+// ignore: unused_import
+import 'package:flutter/material.dart';
 
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    // 1. Demander la permission (Android 13+ et iOS)
+    // 1. Demander les permissions
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
@@ -17,52 +19,69 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // 2. Récupérer le Token FCM pour envoyer des notifs depuis le serveur
+      // 2. Récupérer le token unique
       String? token = await _fcm.getToken();
       if (token != null) {
         _saveTokenToDatabase(token);
       }
     }
 
-    // 3. Configurer les notifications locales pour le mode "Foreground" (App ouverte)
-    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    
+    // 3. Configurer les notifications locales
+    const AndroidInitializationSettings androidInit =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
     const InitializationSettings initSettings = InitializationSettings(
       android: androidInit,
       iOS: DarwinInitializationSettings(),
     );
 
-    await _localNotifications.initialize(initSettings);
+    // CORRECTION : Utilisation de l'argument nommé 'settings'
+    await _localNotifications.initialize(settings: initSettings);
+
+    // Canal pour Android 8.0+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'wizzy_channel',
+      'Wizzy Alerts',
+      description: 'Notifications pour les tournois et tirages',
+      importance: Importance.max,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
-  // Enregistre le token dans Firestore sous le profil de l'utilisateur
   void _saveTokenToDatabase(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
         'fcmToken': token,
       });
     }
   }
 
-  // Affiche une notification de victoire avec un style "Wizzy"
-  Future<void> showVictoryNotification(String tournamentName) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'wizzy_tournaments', // ID du canal
-      'Tournois Wizzy',    // Nom du canal
-      channelDescription: 'Notifications de victoires en tournoi',
+  Future<void> showVictoryNotification(String title) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'wizzy_channel',
+      'Wizzy Alerts',
       importance: Importance.max,
       priority: Priority.high,
-      showWhen: true,
     );
 
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+    const NotificationDetails platformDetails =
+        NotificationDetails(android: androidDetails);
 
+    // CORRECTION : Utilisation des arguments nommés (id, title, body, notificationDetails)
     await _localNotifications.show(
-      1, // ID de la notif
-      "🏆 VICTOIRE ÉCLATANTE !",
-      "Félicitations ! Tu as gagné le tournoi $tournamentName !",
-      platformDetails,
+      id: 0,
+      title: "🏆 FÉLICITATIONS !",
+      body: title,
+      notificationDetails: platformDetails,
     );
   }
 }

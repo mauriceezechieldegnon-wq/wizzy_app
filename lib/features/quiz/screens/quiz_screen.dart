@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore: unused_import
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:audioplayers/audioplayers.dart'; // Import au bon endroit
 import '../../core/constants/app_colors.dart';
 import '../models/question_model.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'quiz_result_screen.dart';
+
 class QuizScreen extends StatefulWidget {
   final String category;
   const QuizScreen({super.key, required this.category});
@@ -19,10 +21,35 @@ class _QuizScreenState extends State<QuizScreen> {
   int _totalScore = 0;
   bool _isAnswered = false;
   String _selectedAnswer = "";
-  bool _isSaving = false;
+  final bool _isSaving = false;
 
-  // Vérification de la réponse avec feedback visuel
-  void _checkAnswer(Question q, String selected) {
+  // Gestion du son
+  final AudioPlayer _musicPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _startMusic();
+  }
+
+  void _startMusic() async {
+    try {
+      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+      await _musicPlayer.play(AssetSource('sounds/quiz_bg.mp3'));
+      await _musicPlayer.setVolume(0.4);
+    } catch (e) {
+      debugPrint("Musique non chargée : $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _musicPlayer.stop();
+    _musicPlayer.dispose();
+    super.dispose();
+  }
+
+  void _checkAnswer(Question q, String selected, int totalCount) {
     if (_isAnswered) return;
 
     setState(() {
@@ -31,61 +58,30 @@ class _QuizScreenState extends State<QuizScreen> {
       if (selected == q.correctAnswer) {
         _totalScore += q.points;
       }
-      final AudioPlayer _bgMusic = AudioPlayer();
-
-@override
-void initState() {
-  super.initState();
-  _startMusic();
-}
-
-void _startMusic() async {
-  await _bgMusic.setReleaseMode(ReleaseMode.loop);
-  await _bgMusic.play(AssetSource('sounds/quiz_bg.mp3'));
-  await _bgMusic.setVolume(0.4); 
-}
-
-@override
-void dispose() {
-  _bgMusic.stop();
-  _bgMusic.dispose();
-  super.dispose();
-}
     });
 
-    // On attend 1.5s pour que le joueur voit s'il a eu bon (Vert/Rouge)
     Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
-        setState(() {
-          _currentIndex++;
-          _isAnswered = false;
-          _selectedAnswer = "";
-        });
+        if (_currentIndex < totalCount - 1) {
+          setState(() {
+            _currentIndex++;
+            _isAnswered = false;
+            _selectedAnswer = "";
+          });
+        } else {
+          // Si c'est la dernière question, on va vers l'écran de résultat
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QuizResultScreen(
+                score: _totalScore,
+                totalQuestions: totalCount,
+              ),
+            ),
+          );
+        }
       }
     });
-  }
-
-  // Sauvegarde des points (Fonctionne même en Offline grâce à la persistance Firestore)
-  Future<void> _finishAndSave() async {
-    setState(() => _isSaving = true);
-    try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
-      // On utilise FieldValue.increment pour que Firestore gère l'addition
-      // tout seul dès que la connexion revient.
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'points': FieldValue.increment(_totalScore),
-      });
-
-      if (mounted) {
-        // Retour à l'accueil
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-    } catch (e) {
-      debugPrint("Erreur sauvegarde : $e");
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
   }
 
   @override
@@ -105,7 +101,6 @@ void dispose() {
         leading: const BackButton(color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // On active l'écoute des changements de métadonnées pour le mode hors-ligne
         stream: FirebaseFirestore.instance
             .collection('questions')
             .where('category', isEqualTo: widget.category)
@@ -113,29 +108,22 @@ void dispose() {
         builder: (context, snapshot) {
           if (snapshot.hasError)
             return const Center(
-                child: Text("Erreur de chargement",
-                    style: TextStyle(color: Colors.white)));
-
-          // Pendant le premier chargement (si le cache est vide)
-          if (!snapshot.hasData) {
+                child: Text("Erreur", style: TextStyle(color: Colors.white)));
+          if (!snapshot.hasData)
             return const Center(
                 child:
                     CircularProgressIndicator(color: AppColors.primaryPurple));
-          }
 
           var questions = snapshot.data!.docs.map((doc) {
             return Question.fromFirestore(
                 doc.data() as Map<String, dynamic>, doc.id);
           }).toList();
 
-          // Cas où la catégorie est vide
-          if (questions.isEmpty) {
-            return _buildEmptyState();
-          }
+          if (questions.isEmpty) return _buildEmptyState();
 
-          // Si le joueur a fini toutes les questions de la liste
+          // On s'assure que l'index ne dépasse pas la liste au cas où
           if (_currentIndex >= questions.length) {
-            return _buildResultScreen();
+            return const Center(child: CircularProgressIndicator());
           }
 
           final currentQ = questions[_currentIndex];
@@ -145,7 +133,6 @@ void dispose() {
             child: Column(
               children: [
                 const SizedBox(height: 10),
-                // Barre de progression style "DLS"
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
@@ -156,14 +143,12 @@ void dispose() {
                   ),
                 ),
                 const SizedBox(height: 40),
-
                 Text(
                   "QUESTION ${_currentIndex + 1} / ${questions.length}",
                   style: const TextStyle(
                       color: AppColors.accentYellow,
                       fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                      letterSpacing: 1),
+                      fontSize: 12),
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -174,27 +159,15 @@ void dispose() {
                       fontSize: 22,
                       fontWeight: FontWeight.w900),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Liste des réponses
                 Expanded(
                   child: ListView(
-                    physics: const BouncingScrollPhysics(),
                     children: currentQ.options
-                        .map((option) =>
-                            _buildOptionCard(option, currentQ.correctAnswer))
+                        .map((option) => _buildOptionCard(
+                            option, currentQ.correctAnswer, questions.length))
                         .toList(),
                   ),
                 ),
-
-                // Indicateur de mode Hors-Ligne
-                if (snapshot.data!.metadata.isFromCache)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: Text("Mode Hors-Ligne Actif 📡",
-                        style: TextStyle(color: Colors.white24, fontSize: 10)),
-                  ),
               ],
             ),
           );
@@ -203,10 +176,9 @@ void dispose() {
     );
   }
 
-  Widget _buildOptionCard(String text, String correct) {
+  Widget _buildOptionCard(String text, String correct, int totalCount) {
     bool isCorrect = text == correct;
     bool isSelected = text == _selectedAnswer;
-
     Color borderColor = Colors.white.withValues(alpha: 0.1);
     Color bgColor = Colors.white.withValues(alpha: 0.03);
 
@@ -228,7 +200,8 @@ void dispose() {
               options: [],
               correctAnswer: correct,
               points: 10),
-          text),
+          text,
+          totalCount),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 16),
@@ -242,12 +215,11 @@ void dispose() {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text(text,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600)),
-            ),
+                child: Text(text,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600))),
             if (_isAnswered && isCorrect)
               const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
             if (_isAnswered && isSelected && !isCorrect)
@@ -266,94 +238,19 @@ void dispose() {
           const Icon(Icons.auto_awesome_motion,
               color: Colors.white10, size: 80),
           const SizedBox(height: 20),
-          const Text("Catégorie en préparation...",
+          const Text("Bientôt disponible !",
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 30),
+          // CORRECTION ICI : Ajout du paramètre child obligatoire
           TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => QuizResultScreen(score: _totalScore, totalQuestions: questions.length)));
+              onPressed: () => Navigator.pop(context),
               child: const Text("RETOUR",
                   style: TextStyle(color: AppColors.accentYellow))),
         ],
       ),
     );
   }
-
-  Widget _buildResultScreen() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("SESSION TERMINÉE",
-                style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2)),
-            const SizedBox(height: 10),
-            Text("+$_totalScore PTS",
-                style: const TextStyle(
-                    color: AppColors.accentYellow,
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900)),
-            const SizedBox(height: 10),
-            const Text("Bien joué, champion !",
-                style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic)),
-            const SizedBox(height: 60),
-            GestureDetector(
-              onTap: _isSaving ? null : _finishAndSave,
-              child: Container(
-                width: double.infinity,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [AppColors.primaryPurple, Color(0xFF9D50BB)]),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.3),
-                        blurRadius: 20)
-                  ],
-                ),
-                child: Center(
-                  child: _isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("RÉCUPÉRER MES POINTS",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-final AudioPlayer _musicPlayer = AudioPlayer();
-
-@override
-void initState() {
-  super.initState();
-  _playMusic();
-}
-
-void _playMusic() async {
-  await _musicPlayer.setReleaseMode(ReleaseMode.loop); // Boucle
-  await _musicPlayer.play(AssetSource('sounds/quiz_bg.mp3'));
-}
-
-@override
-void dispose() {
-  _musicPlayer.stop(); // Arrête la musique quand on quitte
-  super.dispose();
-}
 }
