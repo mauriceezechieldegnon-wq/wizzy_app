@@ -5,9 +5,19 @@
   channel = "stable-24.05"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.jdk21
-    pkgs.unzip
-  ];
+  pkgs.at-spi2-core
+  pkgs.clang
+  pkgs.cmake
+  pkgs.dart
+  pkgs.flutter
+  pkgs.gtk3
+  pkgs.ninja
+  pkgs.pkg-config
+  pkgs.util-linux
+  pkgs.jdk17       # <--- INDISPENSABLE POUR ANDROID
+  pkgs.flutter
+  pkgs.dart
+];
   # Sets environment variables in the workspace
   env = {};
   idx = {

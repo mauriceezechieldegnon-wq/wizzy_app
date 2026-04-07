@@ -270,7 +270,7 @@ class HomeScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               border:
                   Border.all(color: Colors.blueAccent.withValues(alpha: 0.3))),
-          child: Row(children: const [
+          child: const Row(children: [
             Icon(Icons.play_circle_fill, color: Colors.blueAccent),
             SizedBox(width: 15),
             Text("VOIR UNE PUB (+50 PTS)",
@@ -300,7 +300,7 @@ class HomeScreen extends StatelessWidget {
               ]),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.amber.withValues(alpha: 0.3))),
-          child: Row(children: const [
+          child: const Row(children: [
             Icon(FontAwesomeIcons.gift, color: Colors.amber),
             SizedBox(width: 15),
             Text("TIRAGE AU SORT MENSUEL",

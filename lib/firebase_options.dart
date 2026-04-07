@@ -15,7 +15,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: "AIzaSyDBpiAWsfdDZrdO_Sn7pAaX_xzGttAMeUA",
-    appId: "wizzy-3a250.firebaseapp.com",
+    appId: "1:443299913856:web:e3d84f2149506053678665",
     messagingSenderId: "443299913856",
     projectId: 'wizzy-3a250',
     authDomain: 'wizzy-3a250.firebaseapp.com',

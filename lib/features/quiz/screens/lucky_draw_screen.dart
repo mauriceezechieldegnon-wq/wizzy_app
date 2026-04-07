@@ -17,8 +17,9 @@ class LuckyDrawScreen extends StatelessWidget {
         stream:
             FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           var userData = snapshot.data!.data() as Map<String, dynamic>;
           int points = userData['points'] ?? 0;

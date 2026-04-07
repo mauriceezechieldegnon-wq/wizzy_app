@@ -57,10 +57,10 @@ class PaymentService {
           });
         }
       } else {
-        print("Erreur FedaPay : ${response.body}");
+        debugPrint("Erreur FedaPay : ${response.body}");
       }
     } catch (e) {
-      print("Erreur de connexion paiement : $e");
+      debugPrint("Erreur de connexion paiement : $e");
     }
   }
 }

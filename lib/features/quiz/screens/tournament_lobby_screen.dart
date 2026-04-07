@@ -52,8 +52,9 @@ class _TournamentLobbyScreenState extends State<TournamentLobbyScreen> {
             .doc(tourneyId)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return const Center(child: Text("Erreur de connexion"));
+          }
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(
                 child:

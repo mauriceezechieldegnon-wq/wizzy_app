@@ -29,6 +29,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       'category': _selectedCat,
       'points': 10,
     });
+    // ignore: use_build_context_synchronously
     Navigator.pop(context);
   }
 

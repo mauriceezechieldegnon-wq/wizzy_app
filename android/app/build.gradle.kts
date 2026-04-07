@@ -1,71 +1,63 @@
+import java.util.Properties // AJOUTÉ : Import explicite pour régler l'erreur 'util'
+
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
+    id("com.android.application")
+    id("kotlin-android")
+    id("dev.flutter.flutter-gradle-plugin")
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
+val localProperties = Properties() // Changé ici (plus besoin du préfixe java.util)
+val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
+    localPropertiesFile.reader(Charsets.UTF_8).use { reader ->
         localProperties.load(reader)
     }
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
-}
-
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
-}
+val flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
 
 android {
-    namespace "com.dem.wizzy" // VÉRIFIE QUE C'EST BIEN TON ID
-    compileSdk 34 // Mis à jour pour 2026
+    namespace = "com.dem.wizzy" // Ton identifiant unique
+    compileSdk = 36
 
     compileOptions {
-        // --- ACTIVATION DU DESUGARING POUR LES NOTIFICATIONS ---
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // --- ACTIVATION DU DESUGARING POUR LES NOTIFS ---
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
-        applicationId "com.dem.wizzy" // VÉRIFIE QUE C'EST BIEN TON ID
-        minSdkVersion 21 // Requis pour la plupart des plugins
-        targetSdkVersion 34
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        applicationId = "com.dem.wizzy"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
         
-        // --- REQUIS POUR LES GROSSES APPS ---
-        multiDexEnabled true
+        // --- REQUIS POUR LES NOTIFICATIONS ---
+        multiDexEnabled = true
     }
 
     buildTypes {
-        release {
-            signingConfig signingConfigs.debug // Pour tes tests APK
-            shrinkResources false
-            minifyEnabled false
+        getByName("release") {
+            // Utilisation du signing de debug pour que l'APK soit installable tout de suite
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
 
 flutter {
-    source '../..'
+    source = "../.."
 }
 
 dependencies {
-    // --- LA BIBLIOTHÈQUE MAGIQUE POUR FIXER L'ERREUR DE BUILD ---
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
+    // --- LA BIBLIOTHÈQUE MAGIQUE POUR LES NOTIFS ET LES DATES ---
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

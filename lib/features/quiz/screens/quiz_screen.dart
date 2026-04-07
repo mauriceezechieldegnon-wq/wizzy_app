@@ -21,7 +21,6 @@ class _QuizScreenState extends State<QuizScreen> {
   int _totalScore = 0;
   bool _isAnswered = false;
   String _selectedAnswer = "";
-  final bool _isSaving = false;
 
   // Gestion du son
   final AudioPlayer _musicPlayer = AudioPlayer();
@@ -106,13 +105,15 @@ class _QuizScreenState extends State<QuizScreen> {
             .where('category', isEqualTo: widget.category)
             .snapshots(includeMetadataChanges: true),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return const Center(
                 child: Text("Erreur", style: TextStyle(color: Colors.white)));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(
                 child:
                     CircularProgressIndicator(color: AppColors.primaryPurple));
+          }
 
           var questions = snapshot.data!.docs.map((doc) {
             return Question.fromFirestore(
