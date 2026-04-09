@@ -1,0 +1,35 @@
+name: Build WIZZY Windows
+on:
+  push:
+    branches: [ "main" ] # On vise ta branche actuelle
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest # INDISPENSABLE pour un .exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installation de Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # Récupération des packages
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Création du fichier Windows .exe
+      - name: Build Windows
+        run: flutter build windows --release
+
+      # On emballe tout le dossier Release (avec les DLL et les datas)
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wizzy-windows-version-finale
+          path: build/windows/x64/runner/Release/
