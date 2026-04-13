@@ -1,31 +1,51 @@
-name: Build Windows Exe
-on: 
+name: WIZZY Multi-Platform Build
+
+on:
   push:
-    branches: [ master, main ] # Se lance quand tu envoies du code sur master ou main
-  workflow_dispatch: # Permet de lancer le build manuellement sur le site GitHub
+    branches: [ "main" ] # On utilise ta branche main
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build:
+  # --- JOB 1 : COMPILATION ANDROID (.apk) ---
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.22.x' # Version stable 2026
+      
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wizzy-android-apk
+          path: build/app/outputs/flutter-apk/*.apk
+
+  # --- JOB 2 : COMPILATION WINDOWS (.exe) ---
+  build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          
-      - name: Install Dependencies
+      
+      - name: Install dependencies
         run: flutter pub get
-        
-      - name: Enable Windows Desktop
-        run: flutter config --enable-windows-desktop
-        
+
       - name: Build Windows
         run: flutter build windows --release
-        
-      - name: Upload EXE Artifact
+
+      - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
-          name: WIZZY-Windows-Portable
+          name: wizzy-windows-exe
           path: build/windows/x64/runner/Release/
