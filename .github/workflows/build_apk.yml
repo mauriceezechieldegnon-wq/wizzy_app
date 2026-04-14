@@ -1,8 +1,8 @@
-name: WIZZY APK BUILD
+name: WIZZY APK 
 
 on:
   push:
-    branches: [ "main" ] # Se lance quand tu envoies du code sur la branche main
+    branches: [ "main" ] 
 
 jobs:
   build:
@@ -30,5 +30,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wizzy-android-apk
+          name: WIZZY apk
           path: build/app/outputs/flutter-apk/*.apk
