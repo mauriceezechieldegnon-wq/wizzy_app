@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart'; // Pour kIsWeb
+import 'dart:io'; // Pour Platform
 import 'firebase_options.dart';
 
-// --- IMPORTS DES FEATURES ---
+// Mes screens 
 import 'package:wizzy/features/auth/screens/splash_screen.dart';
 import 'package:wizzy/features/auth/screens/register_screen.dart';
 import 'package:wizzy/features/home/screens/home_screen.dart';
@@ -19,28 +21,28 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // 2. Configuration Hors-ligne Firestore
+    // 2. Initialisation des NOTIFICATIONS (Uniquement sur MOBILE)
+    // On évite d'appeler le service sur Windows car la v17 peut faire crash le PC
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      try {
+        final notificationService = NotificationService();
+        await notificationService.init();
+      } catch (e) {
+        debugPrint("Notifs désactivées sur ce support : $e");
+      }
+    }
+
+    // 3. Paramètres Firestore
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
 
-    // 3. Initialisation des notifications (Sécurisée pour éviter le crash au démarrage)
-    try {
-      final notificationService = NotificationService();
-      await notificationService.init();
-    } catch (e) {
-      debugPrint("Erreur d'initialisation des notifications : $e");
-    }
-
     runApp(const WizzyApp());
   } catch (e) {
-    // Si une erreur grave survient au boot
-    runApp(MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text("Erreur de démarrage : $e")),
-      ),
-    ));
+    // Si ça crash au boot sur Windows, on pourra voir l'erreur
+    debugPrint("ERREUR FATALE AU DÉMARRAGE : $e");
+    runApp(MaterialApp(home: Scaffold(body: Center(child: Text("Erreur : $e")))));
   }
 }
 
@@ -52,34 +54,19 @@ class WizzyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Wizzy',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF6200EE),
-        useMaterial3: true,
-      ),
-      
-      // On commence toujours par le Splash Screen
+      theme: ThemeData.dark(),
       initialRoute: '/splash',
-      
       routes: {
         '/splash': (context) => const WizzySplashScreen(),
         '/': (context) => StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            // Pendant que Firebase vérifie si on est connecté
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator(color: Color(0xFF6200EE))),
-              );
+              return const Scaffold(body: Center(child: CircularProgressIndicator()));
             }
-            
-            // Si l'utilisateur est trouvé dans la session -> Dashboard
-            if (snapshot.hasData && snapshot.data != null) {
-              return const HomeScreen();
-            }
-            
-            // Sinon -> Écran d'inscription
-            return const RegisterScreen();
+            return (snapshot.hasData && snapshot.data != null) 
+                ? const HomeScreen() 
+                : const RegisterScreen();
           },
         ),
       },
