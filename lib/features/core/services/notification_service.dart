@@ -35,8 +35,8 @@ class NotificationService {
       iOS: DarwinInitializationSettings(),
     );
 
-    // CORRECTION : Utilisation de l'argument nommé 'settings'
-    await _localNotifications.initialize(settings: initSettings);
+    // FIX : Dans la v17, on passe l'objet directement (argument positionnel)
+    await _localNotifications.initialize(initSettings);
 
     // Canal pour Android 8.0+
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -69,6 +69,7 @@ class NotificationService {
         AndroidNotificationDetails(
       'wizzy_channel',
       'Wizzy Alerts',
+      channelDescription: 'Notifications de victoires',
       importance: Importance.max,
       priority: Priority.high,
     );
@@ -76,12 +77,12 @@ class NotificationService {
     const NotificationDetails platformDetails =
         NotificationDetails(android: androidDetails);
 
-    // CORRECTION : Utilisation des arguments nommés (id, title, body, notificationDetails)
+    // FIX : Dans la v17, les 4 premiers arguments sont positionnels (pas de id:, title:, etc.)
     await _localNotifications.show(
-      id: 0,
-      title: "🏆 FÉLICITATIONS !",
-      body: title,
-      notificationDetails: platformDetails,
+      0, // id
+      "🏆 FÉLICITATIONS !", // title
+      title, // body
+      platformDetails, // notificationDetails
     );
   }
 }

@@ -1,4 +1,4 @@
-import java.util.Properties // AJOUTÉ : Import explicite pour régler l'erreur 'util'
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -6,58 +6,40 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val localProperties = Properties() // Changé ici (plus besoin du préfixe java.util)
+val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localPropertiesFile.reader(Charsets.UTF_8).use { reader ->
-        localProperties.load(reader)
-    }
+    localPropertiesFile.reader(Charsets.UTF_8).use { reader -> localProperties.load(reader) }
 }
 
-val flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
-val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
-
 android {
-    namespace = "com.dem.wizzy" // Ton identifiant unique
-    compileSdk = 36
+    namespace = "com.dem.wizzy"
+    compileSdk = 36 // Mis à jour pour les plugins récents
+
+    
 
     compileOptions {
-        // --- ACTIVATION DU DESUGARING POUR LES NOTIFS ---
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        // CHANGE ICI : Passe de VERSION_1_8 à VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        
+        jvmTarget = "17"
     }
+    
+   
 
     defaultConfig {
         applicationId = "com.dem.wizzy"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = flutterVersionCode.toInt()
-        versionName = flutterVersionName
-        
-        // --- REQUIS POUR LES NOTIFICATIONS ---
         multiDexEnabled = true
     }
-
-    buildTypes {
-        getByName("release") {
-            // Utilisation du signing de debug pour que l'APK soit installable tout de suite
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
-            isShrinkResources = false
-        }
-    }
-}
-
-flutter {
-    source = "../.."
 }
 
 dependencies {
-    // --- LA BIBLIOTHÈQUE MAGIQUE POUR LES NOTIFS ET LES DATES ---
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
