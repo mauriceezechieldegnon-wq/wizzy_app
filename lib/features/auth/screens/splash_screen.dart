@@ -69,7 +69,7 @@ class _WizzySplashScreenState extends State<WizzySplashScreen> {
                     ),
                     const SizedBox(height: 25),
                     const Text(
-                      "WIZZY V2",
+                      "WIZZY V1.1",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 36,
