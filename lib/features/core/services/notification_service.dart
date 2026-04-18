@@ -1,21 +1,21 @@
-import 'package:flutter/foundation.dart'; // Pour kIsWeb
-import 'dart:io'; // Pour Platform
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 class NotificationService {
-  // On ne crée pas les instances ici au sommet pour éviter le crash Windows
-  
   Future<void> init() async {
-    // 1. VERIFICATION DE SECURITE : On arrête tout si on est sur Windows/Web
-    if (kIsWeb || Platform.isWindows || Platform.isLinux) return;
+    // SÉCURITÉ : On arrête tout si on est sur Windows, Web ou Linux
+    if (kIsWeb || Platform.isWindows || Platform.isLinux) {
+      debugPrint("Notifications ignorées sur ce support.");
+      return;
+    }
 
     final FirebaseMessaging fcm = FirebaseMessaging.instance;
     final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
 
-    // 2. Demander les permissions (Mobile uniquement)
     NotificationSettings settings = await fcm.requestPermission(
       alert: true, badge: true, sound: true,
     );
@@ -33,21 +33,14 @@ class NotificationService {
     }
 
     const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    const InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: DarwinInitializationSettings());
     await localNotifications.initialize(initSettings);
   }
 
   Future<void> showVictoryNotification(String title) async {
-    if (kIsWeb || Platform.isWindows) return; // Sécurité Windows
-
+    if (kIsWeb || Platform.isWindows) return;
     final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
-    
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'wizzy_channel', 'Wizzy Alerts',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails('wizzy_channel', 'Wizzy Alerts', importance: Importance.max, priority: Priority.high);
     await localNotifications.show(0, "🏆 FÉLICITATIONS !", title, const NotificationDetails(android: androidDetails));
   }
 }
