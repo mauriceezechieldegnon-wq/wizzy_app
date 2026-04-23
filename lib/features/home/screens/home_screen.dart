@@ -32,10 +32,18 @@ class HomeScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
+Widget build(BuildContext context) {
+  final User? user = FirebaseAuth.instance.currentUser;
 
-    return Scaffold(
+  // FIX : Si l'utilisateur est null, on affiche un chargement au lieu de crash
+  if (user == null) {
+    return const Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
