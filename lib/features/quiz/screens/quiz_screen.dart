@@ -31,15 +31,19 @@ class _QuizScreenState extends State<QuizScreen> {
     _startMusic();
   }
 
-  void _startMusic() async {
-    try {
-      await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-      await _musicPlayer.play(AssetSource('sounds/quiz_bg.mp3'));
-      await _musicPlayer.setVolume(0.4);
-    } catch (e) {
-      debugPrint("Musique non chargée : $e");
-    }
+  
+void _startMusic() async {
+  // SÉCURITÉ : On ne joue pas de musique sur Windows pour l'instant pour tester la stabilité
+  if (kIsWeb || !Platform.isAndroid && !Platform.isIOS) return;
+
+  try {
+    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+    await _musicPlayer.play(AssetSource('sounds/quiz_bg.mp3'));
+    await _musicPlayer.setVolume(0.4);
+  } catch (e) {
+    debugPrint("Musique ignorée: $e");
   }
+}
 
   @override
   void dispose() {
