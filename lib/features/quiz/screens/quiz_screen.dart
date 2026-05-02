@@ -1,3 +1,5 @@
+import 'dart:io'; // Pour Platform
+import 'package:flutter/foundation.dart'; // Pour kIsWeb
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
