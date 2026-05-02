@@ -4,20 +4,37 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class NotificationService {
-  // NE DÉCLARE AUCUNE VARIABLE FirebaseMessaging ICI
-
   Future<void> init() async {
-    // Si on est sur Windows, on quitte immédiatement la fonction
-    if (kIsWeb || !Platform.isAndroid && !Platform.isIOS) return;
+    if (kIsWeb || Platform.isWindows || Platform.isLinux) return;
 
-    try {
-      final messaging = FirebaseMessaging.instance;
-      final localNotif = FlutterLocalNotificationsPlugin();
-      
-      await messaging.requestPermission();
-      // ... reste de ton code init ...
-    } catch (e) {
-      debugPrint("Notifs désactivées sur ce support");
-    }
+    final FirebaseMessaging fcm = FirebaseMessaging.instance;
+    final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+
+    await fcm.requestPermission(alert: true, badge: true, sound: true);
+
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidInit, iOS: DarwinInitializationSettings());
+    
+    await localNotifications.initialize(initSettings);
+  }
+
+  // CETTE MÉTHODE MANQUAIT OU ÉTAIT MAL NOMMÉE
+  Future<void> showVictoryNotification(String title) async {
+    if (kIsWeb || Platform.isWindows) return;
+    
+    final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+    const androidDetails = AndroidNotificationDetails(
+      'wizzy_channel', 
+      'Wizzy Alerts',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    
+    await localNotifications.show(
+      0, 
+      "🏆 VICTOIRE !", 
+      title, 
+      const NotificationDetails(android: androidDetails)
+    );
   }
 }
