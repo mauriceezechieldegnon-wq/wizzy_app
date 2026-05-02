@@ -2,53 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart'; // Pour kIsWeb
-import 'dart:io'; // Pour Platform
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'firebase_options.dart';
 
-// --- TES IMPORTS DE FONCTIONNALITÉS ---
 import 'package:wizzy/features/auth/screens/splash_screen.dart';
 import 'package:wizzy/features/auth/screens/register_screen.dart';
 import 'package:wizzy/features/home/screens/home_screen.dart';
+// On n'importe le service que si on est sur mobile pour éviter que Windows ne le scanne
 import 'package:wizzy/features/core/services/notification_service.dart';
 
 void main() async {
-  // 1. Capture les erreurs globales pour éviter que l'app se ferme sans rien dire
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    debugPrint("CRASH DÉTECTÉ : ${details.exception}");
-  };
+  WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    WidgetsFlutterBinding.ensureInitialized();
-    debugPrint("--- INITIALISATION WIZZY ---");
+    // 1. Init Firebase (Config Web pour Windows)
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-    // 2. Initialisation Firebase
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint("Firebase : OK ✅");
-
-    // 3. Configuration Firestore (Mode Hors-ligne)
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-    debugPrint("Mode Offline : OK ✅");
-
-    // 4. Initialisation des NOTIFICATIONS (Uniquement sur MOBILE Android/iOS)
-    // On bloque l'appel sur Windows/Web pour éviter l'erreur "Platform not supported"
+    // 2. Init Notifs UNIQUEMENT sur Android/iOS
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      try {
-        final notificationService = NotificationService();
-        await notificationService.init();
-        debugPrint("Notifications : OK ✅");
-      } catch (e) {
-        debugPrint("Erreur notifs (ignorée) : $e");
-      }
-    } else {
-      debugPrint("Support Desktop détecté : Notifications désactivées par sécurité.");
+      final notificationService = NotificationService();
+      await notificationService.init();
     }
+
+    runApp(const WizzyApp());
+  } catch (e) {
+    // Si Windows râle encore, on affiche l'erreur proprement
+    runApp(MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: Text("WIZZY PC - Erreur: $e", style: TextStyle(color: Colors.white))),
+      ),
+    ));
+  }
+}
 
     // 5. Lancement de l'application
     runApp(const WizzyApp());
