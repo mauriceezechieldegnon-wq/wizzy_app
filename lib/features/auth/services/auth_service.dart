@@ -17,12 +17,13 @@ class AuthService {
   // --- GETTER SÉCURISÉ POUR GOOGLE SIGN-IN ---
   // Cette fonction vérifie la plateforme avant de réveiller le plugin
   GoogleSignIn? get _googleSignIn {
-    if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
-      _googleSignInInstance ??= GoogleSignIn();
-      return _googleSignInInstance;
-    }
-    return null; // Renvoie null sur Windows/Linux pour éviter le crash
+  if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
+    _googleSignInInstance ??= GoogleSignIn();
+    return _googleSignInInstance;
   }
+  // Ne pas renvoyer null, mais un objet qui prévient l'utilisateur
+  return null; 
+}
 
   // --- INSCRIPTION PAR EMAIL ---
   Future<void> signUpWithEmail({
