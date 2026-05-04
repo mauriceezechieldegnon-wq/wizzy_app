@@ -1,83 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
-// ignore: unused_import
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../core/constants/app_colors.dart';
+import '../../../core/constants/app_colors.dart';
 import '../models/product_model.dart';
 
 class MarketplaceScreen extends StatelessWidget {
   const MarketplaceScreen({super.key});
 
-  // Fonction pour contacter le vendeur sur WhatsApp
   void _contactSeller(Product product) async {
-    final message =
-        "Bonjour, je suis intéressé par l'article ${product.name} vu sur WIZZY.";
-    final url =
-        "https://wa.me/${product.sellerWhatsApp}?text=${Uri.encodeComponent(message)}";
-    final uri = Uri.parse(url);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        debugPrint("Impossible d'ouvrir WhatsApp");
-      }
-    } catch (e) {
-      debugPrint("Erreur WhatsApp : $e");
+    final message = "Bonjour, je suis intéressé par ${product.name} sur WIZZY.";
+    final url = "https://wa.me/${product.sellerWhatsApp}?text=${Uri.encodeComponent(message)}";
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    // --- LOGIQUE DE GRILLE RESPONSIVE ---
+    int crossAxisCount = screenWidth > 1200 ? 6 : (screenWidth > 800 ? 4 : 2);
+    double aspectRatio = screenWidth > 800 ? 0.85 : 0.7;
+
     return Scaffold(
       backgroundColor: const Color(0xFF09090B),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("LE BAZAR 🛍️",
-            style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                color: Colors.white)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text("LE BAZAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+        leading: const BackButton(color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('products').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child:
-                    CircularProgressIndicator(color: AppColors.primaryPurple));
+            return const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple));
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("Le Bazar est vide...",
-                  style: TextStyle(color: Colors.white54)),
-            );
+            return const Center(child: Text("Boutique vide...", style: TextStyle(color: Colors.white24)));
           }
 
-          final products = snapshot.data!.docs
-              .map((doc) => Product.fromFirestore(
-                  doc.data() as Map<String, dynamic>, doc.id))
-              .toList();
+          final products = snapshot.data!.docs.map((doc) => 
+            Product.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
 
           return GridView.builder(
             padding: const EdgeInsets.all(20),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.7,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: aspectRatio,
             ),
             itemCount: products.length,
-            itemBuilder: (context, index) {
-              return _buildProductCard(context, products[index]);
-            },
+            itemBuilder: (context, index) => _buildProductCard(context, products[index]),
           );
         },
       ),
@@ -88,61 +65,41 @@ class MarketplaceScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white10),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
               child: Image.network(
                 p.imageUrl,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                // --- ICI LA CORRECTION DE L'ERRORBUILDER ---
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.white10,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.broken_image,
-                        color: Colors.white24, size: 40),
-                  );
-                },
-                // -------------------------------------------
+                errorBuilder: (context, error, stack) => const Icon(Icons.image, color: Colors.white10),
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(p.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text("${p.price} F",
-                    style: const TextStyle(
-                        color: AppColors.accentYellow,
-                        fontWeight: FontWeight.w900)),
-                const SizedBox(height: 10),
+                Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, 
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text("${p.price} F", 
+                  style: const TextStyle(color: AppColors.accentYellow, fontWeight: FontWeight.w900, fontSize: 14)),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () => _contactSeller(p),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryPurple,
-                    minimumSize: const Size(double.infinity, 35),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                    minimumSize: const Size(double.infinity, 30),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text("ACHETER",
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                  child: const Text("ACHETER", style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
