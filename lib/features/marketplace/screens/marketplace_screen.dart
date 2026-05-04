@@ -79,7 +79,7 @@ class MarketplaceScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                Text("${p.price} F", style: TextStyle(color: AppColors.accentYellow, fontWeight: FontWeight.w900, fontSize: 14)),
+                Text("${p.price} F", style: const TextStyle(color: AppColors.accentYellow, fontWeight: FontWeight.w900, fontSize: 14)),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () => _contactSeller(p),
