@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 
 import 'package:wizzy/core/constants/app_colors.dart';
 import 'package:wizzy/shared/widgets/dls_card.dart';
@@ -116,7 +114,7 @@ class HomeScreen extends StatelessWidget {
           onLongPress: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboardScreen())) : null,
           child: Container(
             padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [AppColors.primaryPurple, AppColors.accentYellow])),
+            decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [AppColors.primaryPurple, AppColors.accentYellow])),
             child: CircleAvatar(
               radius: 18, backgroundColor: Colors.black,
               backgroundImage: NetworkImage(photo ?? "https://ui-avatars.com/api/?name=${data?['username'] ?? 'W'}&background=6200EE&color=fff"),
