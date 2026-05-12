@@ -19,7 +19,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
     super.initState();
     _model = GenerativeModel(
       model: 'gemini-1.5-flash-latest',
-      apiKey: "AIzaSyCk9922Fpk9ijZj_tE9QX2HoV4Jm7sFSPY", // <--- GUILLEMETS AJOUTÉS
+      apiKey: "AIzaSyCk9922Fpk9ijZj_tE9QX2HoV4Jm7sFSPY", 
     );
   }
 
@@ -33,13 +33,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
     _controller.clear();
     try {
       final response = await _model.generateContent([Content.text(userText)]);
-      setState(() {
-        _messages.add({"role": "ai", "text": response.text ?? "Désolé..."});
-      });
+      setState(() { _messages.add({"role": "ai", "text": response.text ?? "Désolé..."}); });
     } catch (e) {
-      setState(() {
-        _messages.add({"role": "ai", "text": "Le Génie dort. Réessaie plus tard."});
-      });
+      setState(() { _messages.add({"role": "ai", "text": "Erreur..."}); });
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -48,8 +44,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
-      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text("GÉNIE WIZZY", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white))),
+      backgroundColor: AppColors.backgroundBlack,
+      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text("IA WIZZY", style: TextStyle(color: Colors.white))),
       body: Column(
         children: [
           Expanded(
@@ -58,36 +54,19 @@ class _AIChatScreenState extends State<AIChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                bool isMe = msg['role'] == "user";
                 return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: msg['role'] == "user" ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isMe ? AppColors.primaryPurple : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                    decoration: BoxDecoration(color: msg['role'] == "user" ? AppColors.primaryPurple : Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20)),
                     child: Text(msg['text']!, style: const TextStyle(color: Colors.white)),
                   ),
                 );
               },
             ),
           ),
-          _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputArea() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: Colors.black,
-      child: Row(
-        children: [
-          Expanded(child: TextField(controller: _controller, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(hintText: "Demande-moi...", hintStyle: TextStyle(color: Colors.white24)))),
-          IconButton(onPressed: _sendMessage, icon: const Icon(Icons.send, color: AppColors.accentYellow)),
+          Container(padding: const EdgeInsets.all(20), child: Row(children: [Expanded(child: TextField(controller: _controller, style: const TextStyle(color: Colors.white))), IconButton(onPressed: _sendMessage, icon: const Icon(Icons.send, color: AppColors.accentYellow))])),
         ],
       ),
     );
