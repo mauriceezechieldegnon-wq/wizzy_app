@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:wizzy/core/constants/app_colors.dart';
 import 'package:wizzy/features/marketplace/models/product_model.dart';
 
@@ -83,14 +84,11 @@ class MarketplaceScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () => _contactSeller(p),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryPurple, minimumSize: const Size(double.infinity, 30)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryPurple,
+                    minimumSize: const Size(double.infinity, 30),
+                  ),
                   child: const Text("ACHETER", style: TextStyle(fontSize: 9, color: Colors.white)),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
