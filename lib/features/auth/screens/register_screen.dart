@@ -1,41 +1,94 @@
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wizzy/core/constants/app_colors.dart';
+import 'package:wizzy/features/auth/services/auth_service.dart';
 
-class AIChatScreen extends StatefulWidget {
-  const AIChatScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
   @override
-  State<AIChatScreen> createState() => _AIChatScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _AIChatScreenState extends State<AIChatScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = [];
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  late GenerativeModel _model;
+
+  void _handleEmailRegister() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      try {
+        await _authService.signUpWithEmail(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          username: _usernameController.text.trim(),
+          whatsapp: _whatsappController.text.trim(),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur : $e")));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash-latest',
-      apiKey: "AIzaSyCk9922Fpk9ijZj_tE9QX2HoV4Jm7sFSPY", // <--- GUILLEMETS AJOUTÉS
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundBlack,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              const SizedBox(height: 60),
+              const Text("REJOINDRE WIZZY", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 40),
+              _buildField(_usernameController, "Pseudo", Icons.person_outline),
+              _buildField(_whatsappController, "WhatsApp (+229...)", Icons.phone),
+              _buildField(_emailController, "Email", Icons.alternate_email),
+              _buildField(_passwordController, "Mot de passe", Icons.lock_outline, isPass: true),
+              const SizedBox(height: 30),
+              GestureDetector(
+                onTap: _isLoading ? null : _handleEmailRegister,
+                child: Container(
+                  width: double.infinity, height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [AppColors.primaryPurple, const Color(0xFF9D50BB)]),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Center(child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("CRÉER MON COMPTE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  void _sendMessage() async {
-    if (_controller.text.trim().isEmpty || _isLoading) return;
-    String userText = _controller.text;
-    setState(() {
-      _messages.add({"role": "user", "text": userText});
-      _isLoading = true;
-    });
-    _controller.clear();
-    try {
-      final response = await _model.generateContent([Content.text(userText)]);
-      setState(() {
-        _messages.add({"role": "ai", "text": response.text ?? "Désolé..."});
-      });
-    } catch (e) {
-      setState(() {
-        _messages.add({"role": "ai"
+  Widget _buildField(TextEditingController controller, String hint, IconData icon, {bool isPass = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPass,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: AppColors.accentYellow, size: 18),
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white24),
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.03),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+        ),
+      ),
+    );
+  }
+}
