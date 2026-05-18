@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:wizzy/firebase_options.dart';
-
 import 'package:wizzy/features/auth/screens/splash_screen.dart';
 import 'package:wizzy/features/auth/screens/register_screen.dart';
 import 'package:wizzy/features/home/screens/home_screen.dart';
@@ -13,36 +12,19 @@ import 'package:wizzy/features/core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      final notificationService = NotificationService();
-      await notificationService.init();
+      await NotificationService().init();
     }
-
-    runApp(const WizzyApp());
   } catch (e) {
-    runApp(MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: Text("Erreur démarrage : $e", style: const TextStyle(color: Colors.white))),
-      ),
-    ));
+    debugPrint("Erreur Init: $e");
   }
+  runApp(const WizzyApp());
 }
 
 class WizzyApp extends StatelessWidget {
   const WizzyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,10 +37,8 @@ class WizzyApp extends StatelessWidget {
         '/': (context) => StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
-            }
-            return snapshot.hasData ? const HomeScreen() : const RegisterScreen();
+            if (snapshot.hasData) return const HomeScreen();
+            return const RegisterScreen();
           },
         ),
       },
