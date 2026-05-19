@@ -4,7 +4,6 @@ import 'package:wizzy/core/constants/app_colors.dart';
 
 class MatchmakingScreen extends StatefulWidget {
   const MatchmakingScreen({super.key});
-
   @override
   State<MatchmakingScreen> createState() => _MatchmakingScreenState();
 }
@@ -72,11 +71,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> with SingleTicker
           )).toList(),
         ),
         const SizedBox(height: 50),
-        ElevatedButton(
-          onPressed: startSearch, 
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryPurple), 
-          child: const Text("TROUVER UN RIVAL", style: TextStyle(color: Colors.white))
-        ),
+        ElevatedButton(onPressed: startSearch, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryPurple), child: const Text("TROUVER UN RIVAL", style: TextStyle(color: Colors.white))),
       ],
     );
   }
@@ -87,10 +82,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen> with SingleTicker
       builder: (context, child) {
         return Container(
           width: 200, height: 200,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle, 
-            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 1 - _controller.value), width: 4)
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 1 - _controller.value), width: 4)),
           child: const Center(child: Text("RECHERCHE...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
         );
       },
